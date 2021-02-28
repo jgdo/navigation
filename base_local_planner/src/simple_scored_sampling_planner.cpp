@@ -102,6 +102,7 @@ namespace base_local_planner {
           // TODO use this for debugging
           continue;
         }
+
         loop_traj_cost = scoreTrajectory(loop_traj, best_traj_cost);
         if (all_explored != NULL) {
           loop_traj.cost_ = loop_traj_cost;

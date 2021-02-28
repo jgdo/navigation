@@ -109,13 +109,23 @@ namespace base_local_planner {
 
     const geometry_msgs::PoseStamped& plan_pose = global_plan[0];
     try {
-      // get plan_to_global_transform from plan frame to global_frame
-      geometry_msgs::TransformStamped plan_to_global_transform = tf.lookupTransform(global_frame, ros::Time(),
-          plan_pose.header.frame_id, plan_pose.header.stamp, plan_pose.header.frame_id, ros::Duration(0.5));
+        // ROS_INFO_STREAM("transformGlobalPlan(): looking up transform for time " << plan_pose.header.stamp);
+
+        // get plan_to_global_transform from plan frame to global_frame
+        const auto target_time = ros::Time();
+        const bool canTransform = tf.canTransform(global_frame, target_time, plan_pose.header.frame_id, plan_pose.header.stamp, plan_pose.header.frame_id, ros::Duration(0.5));
+
+        //if(!canTransform) {
+        //    ROS_WARN_STREAM("canTransform is false");
+        // }
+        const geometry_msgs::TransformStamped plan_to_global_transform = tf.lookupTransform(global_frame, target_time, plan_pose.header.frame_id, plan_pose.header.stamp, plan_pose.header.frame_id);
+
+
+        // ROS_INFO_STREAM("transforming robot pose");
 
       //let's get the pose of the robot in the frame of the plan
       geometry_msgs::PoseStamped robot_pose;
-      tf.transform(global_pose, robot_pose, plan_pose.header.frame_id);
+      tf.transform(global_pose, robot_pose, plan_pose.header.frame_id, ros::Duration(0.5));
 
       //we'll discard points on the plan that are outside the local costmap
       double dist_threshold = std::max(costmap.getSizeInCellsX() * costmap.getResolution() / 2.0,

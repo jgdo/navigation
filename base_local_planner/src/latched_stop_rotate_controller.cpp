@@ -101,9 +101,14 @@ bool LatchedStopRotateController::isGoalReached(LocalPlannerUtil* planner_util,
       //make sure that we're actually stopped before returning success
       if (base_local_planner::stopped(base_odom, theta_stopped_vel, trans_stopped_vel)) {
         return true;
-      }
+      } else{
+        ROS_INFO_STREAM("Goal within limits reached, but not stopped yet: vx " 
+          << base_odom.twist.twist.linear.x << ", vth " << base_odom.twist.twist.angular.z);
+      } 
     }
   }
+
+  ROS_INFO("Goal not reached yet");
   return false;
 }
 
@@ -224,13 +229,14 @@ bool LatchedStopRotateController::computeVelocityCommandsStopRotate(geometry_msg
   double goal_th = tf2::getYaw(goal_pose.pose.orientation);
   double angle = base_local_planner::getGoalOrientationAngleDifference(global_pose, goal_th);
   if (fabs(angle) <= limits.yaw_goal_tolerance) {
+     ROS_INFO("Rotation done");
     //set the velocity command to zero
     cmd_vel.linear.x = 0.0;
     cmd_vel.linear.y = 0.0;
     cmd_vel.angular.z = 0.0;
     rotating_to_goal_ = false;
   } else {
-    ROS_DEBUG("Angle: %f Tolerance: %f", angle, limits.yaw_goal_tolerance);
+    ROS_INFO("Angle: %f Tolerance: %f", angle, limits.yaw_goal_tolerance);
     geometry_msgs::PoseStamped robot_vel;
     odom_helper_.getRobotVel(robot_vel);
     nav_msgs::Odometry base_odom;
@@ -248,7 +254,7 @@ bool LatchedStopRotateController::computeVelocityCommandsStopRotate(geometry_msg
         ROS_INFO("Error when stopping.");
         return false;
       }
-      ROS_DEBUG("Stopping...");
+      ROS_INFO("Stopping...");
     }
     //if we're stopped... then we want to rotate to goal
     else {
@@ -266,7 +272,7 @@ bool LatchedStopRotateController::computeVelocityCommandsStopRotate(geometry_msg
         ROS_INFO("Error when rotating.");
         return false;
       }
-      ROS_DEBUG("Rotating...");
+      ROS_INFO("Rotating...");
     }
   }
 
